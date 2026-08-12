@@ -8,6 +8,9 @@ let context;
 let page;
 let lastLinks = [];
 let bbSession = null;
+let frameTimer = null;
+let lastFrame = null;
+let lastFrameAt = 0;
 
 function browserbaseKey() {
   return (process.env.BROWSERBASE_API_KEY || "").trim();
@@ -15,6 +18,39 @@ function browserbaseKey() {
 
 export function browserBackend() {
   return browserbaseKey() ? "browserbase" : "local";
+}
+
+export function latestFrame() {
+  return lastFrame;
+}
+
+function framePath() {
+  return join(dataDir(), "frame.jpg");
+}
+
+export async function snapFrame() {
+  if (!page || page.isClosed()) return null;
+  try {
+    const buf = await page.screenshot({ type: "jpeg", quality: 55, scale: "css" });
+    lastFrame = buf;
+    lastFrameAt = Date.now();
+    writeFileSync(framePath(), buf);
+    return buf;
+  } catch {
+    return lastFrame;
+  }
+}
+
+function startFrameLoop() {
+  if (frameTimer) return;
+  frameTimer = setInterval(() => {
+    snapFrame().catch(() => {});
+  }, 700);
+}
+
+function stopFrameLoop() {
+  if (frameTimer) clearInterval(frameTimer);
+  frameTimer = null;
 }
 
 function statePath() {
@@ -54,6 +90,7 @@ export async function ensureBrowser() {
       },
     });
     logEvent("sys", `browserbase session ${session.id}`);
+    startFrameLoop();
     return page;
   }
 
@@ -71,6 +108,7 @@ export async function ensureBrowser() {
   page = await context.newPage();
   page.setDefaultTimeout(20_000);
   patchState({ browserHost: { backend: "local" } });
+  startFrameLoop();
   return page;
 }
 
@@ -81,6 +119,7 @@ export async function closeBrowser() {
   } catch {
     /* ignore */
   }
+  stopFrameLoop();
   browser = context = page = null;
   bbSession = null;
 }
@@ -153,7 +192,9 @@ export async function capture() {
     links: lastLinks,
     ascii: formatAscii({ url, title, text: data.text, links: lastLinks }),
     at: new Date().toISOString(),
+    hasFrame: true,
   };
+  await snapFrame();
   patchState({
     lantern: {
       url: snap.url,

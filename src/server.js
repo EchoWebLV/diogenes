@@ -2,7 +2,7 @@ import { createServer } from "node:http";
 import { readFileSync, existsSync } from "node:fs";
 import { extname, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
-import { browserBackend } from "./browser.js";
+import { browserBackend, latestFrame } from "./browser.js";
 import { readCoins } from "./pump.js";
 import { snapshot, subscribe } from "./store.js";
 import { walletStatus } from "./wallet.js";
@@ -63,6 +63,7 @@ export function startServer({ port, dailyBudgetUsd }) {
               wallet: { error: String(err.message || err), independent: true },
               coins: readCoins(),
               browserBackend: browserBackend(),
+              hasFrame: Boolean(latestFrame()),
             }),
           );
         });
@@ -78,6 +79,44 @@ export function startServer({ port, dailyBudgetUsd }) {
       }
       res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
       res.end(JSON.stringify({ ok: true, thanks: "groklius", payTo: body.accepts[0].payTo }));
+      return;
+    }
+
+    if (url.pathname === "/api/frame.jpg") {
+      const buf = latestFrame();
+      if (!buf) {
+        res.writeHead(204).end();
+        return;
+      }
+      res.writeHead(200, {
+        "Content-Type": "image/jpeg",
+        "Cache-Control": "no-store",
+        "Content-Length": buf.length,
+      });
+      res.end(buf);
+      return;
+    }
+
+    if (url.pathname === "/api/frame.mjpeg") {
+      res.writeHead(200, {
+        "Content-Type": "multipart/x-mixed-replace; boundary=frame",
+        "Cache-Control": "no-cache, no-store",
+        Connection: "keep-alive",
+      });
+      const tick = () => {
+        const buf = latestFrame();
+        if (!buf || res.writableEnded) return;
+        try {
+          res.write(`--frame\r\nContent-Type: image/jpeg\r\nContent-Length: ${buf.length}\r\n\r\n`);
+          res.write(buf);
+          res.write("\r\n");
+        } catch {
+          clearInterval(id);
+        }
+      };
+      const id = setInterval(tick, 400);
+      tick();
+      req.on("close", () => clearInterval(id));
       return;
     }
 

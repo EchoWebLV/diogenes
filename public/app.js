@@ -73,7 +73,19 @@ function renderView(s) {
   const url = b.url || s.lantern?.url || "about:blank";
   const title = b.title || s.lantern?.title || "no window";
   const links = b.links || [];
-  $("view-chrome").textContent = `+-- view  ${title}`.padEnd(48, " ") + "--+";
+  const live = $("live-frame");
+  const dbg = s.browserHost?.debuggerUrl;
+  $("view-chrome").textContent = `+-- view  ${title}`.padEnd(40, " ") + (s.browserBackend === "browserbase" ? " bb --+" : " --+");
+  if (s.hasFrame || s.browser?.hasFrame) {
+    live.hidden = false;
+    if (!live.dataset.live) {
+      live.dataset.live = "1";
+      live.src = "/api/frame.mjpeg";
+    }
+  } else {
+    live.hidden = true;
+    live.dataset.live = "";
+  }
 
   let ascii = b.ascii || s.lantern?.excerpt || "no window\nbrowser is cold.";
   if (!b.ascii && s.lantern?.excerpt) {
