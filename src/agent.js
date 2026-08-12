@@ -167,9 +167,11 @@ export function createAgent(config) {
         await sleep(sleepSeconds * 1000);
       } catch (err) {
         const message = err?.message || String(err);
-        patchState({ status: "error", lastError: message });
+        const credits =
+          /used all available credits|spending limit|permission-denied/i.test(message);
+        patchState({ status: credits ? "broke" : "error", lastError: message });
         logEvent("broke", message);
-        await sleep(30_000);
+        await sleep(credits ? 15 * 60 * 1000 : 30_000);
       }
     }
   }
