@@ -31,6 +31,7 @@ const emptyState = () => ({
   lastIdle: null,
   previousResponseId: null,
   lantern: { url: "", title: "offline", note: "browser is idle.", excerpt: "" },
+  browser: { url: "", title: "no window", ascii: "no window\nbrowser is cold.", links: [] },
   actionsToday: 0,
   actionsDate: todayKey(),
   lastError: null,

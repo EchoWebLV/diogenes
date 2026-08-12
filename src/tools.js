@@ -1,4 +1,12 @@
 import { browsePage } from "./browse.js";
+import {
+  browserBack,
+  browserClick,
+  browserGoto,
+  browserPostX,
+  browserType,
+  capture,
+} from "./browser.js";
 import { draftPost, forget, journal, logEvent, patchState, remember } from "./store.js";
 import { inspectAccount, sendSol, walletStatus, writeMemo } from "./wallet.js";
 
@@ -15,6 +23,52 @@ export async function runLocalTool(name, args) {
       patchState({ lantern });
       logEvent("lantern", lantern.title, { url: lantern.url });
       return { ok: true, lantern };
+    }
+    case "browser_goto": {
+      try {
+        return await browserGoto(args.url);
+      } catch (err) {
+        return { ok: false, error: String(err.message || err) };
+      }
+    }
+    case "browser_click": {
+      try {
+        return await browserClick({ index: args.index, text: args.text });
+      } catch (err) {
+        return { ok: false, error: String(err.message || err) };
+      }
+    }
+    case "browser_type": {
+      try {
+        return await browserType({ text: args.text, submit: Boolean(args.submit) });
+      } catch (err) {
+        return { ok: false, error: String(err.message || err) };
+      }
+    }
+    case "browser_back": {
+      try {
+        return await browserBack();
+      } catch (err) {
+        return { ok: false, error: String(err.message || err) };
+      }
+    }
+    case "browser_read": {
+      try {
+        const snap = await capture();
+        logEvent("browse", snap.title || snap.url);
+        return { ok: true, ...snap };
+      } catch (err) {
+        return { ok: false, error: String(err.message || err) };
+      }
+    }
+    case "post_x": {
+      try {
+        const result = await browserPostX(args.text);
+        if (result.ok) logEvent("draft", `posted: ${args.text}`);
+        return result;
+      } catch (err) {
+        return { ok: false, error: String(err.message || err) };
+      }
     }
     case "browse_page": {
       const page = await browsePage(args.url);

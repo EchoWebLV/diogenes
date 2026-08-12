@@ -2,6 +2,7 @@ import { config as loadEnv } from "dotenv";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { createAgent } from "./agent.js";
+import { closeBrowser } from "./browser.js";
 import { startServer } from "./server.js";
 import { ensureData, logEvent, patchState } from "./store.js";
 import { loadKeypair, publicAddress } from "./wallet.js";
@@ -9,9 +10,10 @@ import { loadKeypair, publicAddress } from "./wallet.js";
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 loadEnv({ path: join(root, ".env") });
 
+const live = process.argv.includes("--live") || process.env.AGENT_ENABLED === "1";
 const apiKey = process.env.XAI_API_KEY;
-if (!apiKey) {
-  console.error("missing XAI_API_KEY. copy .env.example to .env");
+if (live && !apiKey) {
+  console.error("AGENT_ENABLED/ --live needs XAI_API_KEY");
   process.exit(1);
 }
 
@@ -27,26 +29,29 @@ const config = {
 
 ensureData(config.dailyBudgetUsd);
 loadKeypair();
-patchState({ status: "booting" });
+patchState({ status: live ? "booting" : "halted", lastError: live ? null : "agent halted" });
 
-const agent = createAgent(config);
+const agent = live ? createAgent(config) : null;
 await startServer({ port: config.port, dailyBudgetUsd: config.dailyBudgetUsd });
 
 const address = publicAddress();
-console.log(`groklius is live on http://127.0.0.1:${config.port}`);
-console.log(`brain: ${config.model}  daily budget: $${config.dailyBudgetUsd}`);
+console.log(`groklius rack on http://127.0.0.1:${config.port}`);
+console.log(`brain: ${config.model}  live=${live ? "yes" : "no (dashboard only)"}`);
 console.log(`wallet: ${address}`);
-logEvent("sys", `dashboard on :${config.port}`);
+logEvent("sys", live ? `live on :${config.port}` : `rack on :${config.port} — agent halted`);
 logEvent("chain", `independent wallet ${address}`);
 
-const stop = () => {
-  agent.stop();
+const stop = async () => {
+  agent?.stop();
+  await closeBrowser();
   process.exit(0);
 };
 process.on("SIGINT", stop);
 process.on("SIGTERM", stop);
 
-agent.start().catch((err) => {
-  console.error(err);
-  process.exit(1);
-});
+if (agent) {
+  agent.start().catch((err) => {
+    console.error(err);
+    process.exit(1);
+  });
+}

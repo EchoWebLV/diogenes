@@ -50,6 +50,20 @@ cp .env.example .env
 ./start.sh
 ```
 
+Local rack (no spend):
+
+```bash
+./start.sh
+```
+
+Live wanderer (spends Grok):
+
+```bash
+./start.sh --live
+```
+
+He has a real Playwright browser (`browser_goto` / `click` / `type` / `back`), X posting if a session is saved to `data/browser-state.json`, and the public rack is an ASCII terminal of the view, stream, and wallet.
+
 Local: [http://127.0.0.1:4173](http://127.0.0.1:4173)
 
 ## Env

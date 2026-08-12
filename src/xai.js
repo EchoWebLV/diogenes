@@ -24,6 +24,74 @@ export const LOCAL_TOOLS = [
   },
   {
     type: "function",
+    name: "browser_goto",
+    description: "Open a URL in your real browser. Use this to actually go somewhere.",
+    parameters: {
+      type: "object",
+      properties: { url: { type: "string" } },
+      required: ["url"],
+    },
+  },
+  {
+    type: "function",
+    name: "browser_click",
+    description: "Click a link in the live browser. Prefer a numbered [index] from the last snapshot.",
+    parameters: {
+      type: "object",
+      properties: {
+        index: { type: "number", description: "link number from the last page snapshot" },
+        text: { type: "string", description: "visible link or button text if no index" },
+      },
+    },
+  },
+  {
+    type: "function",
+    name: "browser_type",
+    description: "Type into the focused field on the page. Set submit true to press enter.",
+    parameters: {
+      type: "object",
+      properties: {
+        text: { type: "string" },
+        submit: { type: "boolean" },
+      },
+      required: ["text"],
+    },
+  },
+  {
+    type: "function",
+    name: "browser_back",
+    description: "Go back one page in the real browser.",
+    parameters: {
+      type: "object",
+      properties: {
+        why: { type: "string" },
+      },
+    },
+  },
+  {
+    type: "function",
+    name: "browser_read",
+    description: "Re-read the current browser page and refresh the public view.",
+    parameters: {
+      type: "object",
+      properties: {
+        why: { type: "string" },
+      },
+    },
+  },
+  {
+    type: "function",
+    name: "post_x",
+    description:
+      "Publish a post on X from your browser session. Fails if X is not logged in. Keep it under 280.",
+    parameters: {
+      type: "object",
+      properties: { text: { type: "string" } },
+      required: ["text"],
+    },
+  },
+  {
+    type: "function",
     name: "browse_page",
     description:
       "Open a real URL and read the page text. Use after search when you need the source, not a snippet.",
