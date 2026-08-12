@@ -53,6 +53,7 @@ export function startServer({ port, dailyBudgetUsd }) {
               wallet,
               coins: readCoins(),
               browserBackend: browserBackend(),
+              hasFrame: Boolean(latestFrame()),
             }),
           );
         })
