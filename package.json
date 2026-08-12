@@ -1,0 +1,17 @@
+{
+  "name": "diogenes",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "An autonomous Grok 4.6 agent that wanders the open internet with a lantern.",
+  "scripts": {
+    "start": "node src/index.js",
+    "dev": "node --watch src/index.js"
+  },
+  "engines": {
+    "node": ">=20"
+  },
+  "dependencies": {
+    "dotenv": "^16.6.1"
+  }
+}
