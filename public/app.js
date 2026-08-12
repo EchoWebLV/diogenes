@@ -65,51 +65,22 @@ function renderBar(s) {
   const st = (s.status || "halted").toUpperCase();
   const acts = s.actionsToday || 0;
   const usd = money(s.spend?.usd);
-  $("bar").textContent = `groklius  ·  ${st}  ·  ${acts} ACTS  ·  ${usd}  ·  ${clock(s.now)}`;
+  $("bar").textContent = `groklius  ·  LIVE SITE  ·  ${st}  ·  ${acts} ACTS  ·  ${usd}  ·  ${clock(s.now)}`;
 }
 
 function renderView(s) {
   const b = s.browser || {};
   const url = b.url || s.lantern?.url || "about:blank";
-  const title = b.title || s.lantern?.title || "no window";
-  const links = b.links || [];
-  const live = $("live-frame");
-  const dbg = s.browserHost?.debuggerUrl;
-  $("view-chrome").textContent = `+-- view  ${title}`.padEnd(40, " ") + (s.browserBackend === "browserbase" ? " bb --+" : " --+");
-  if (s.hasFrame || s.browser?.hasFrame) {
-    live.hidden = false;
-    if (!live.dataset.live) {
-      live.dataset.live = "1";
-      live.src = "/api/frame.mjpeg";
-    }
-  } else {
-    live.hidden = true;
-    live.dataset.live = "";
+  $("lantern-url").textContent = url;
+  const live = s.hasFrame || s.browser?.hasFrame || s.status === "acting";
+  $("live-tag").textContent = live ? "LIVE" : "NO SIGNAL";
+  $("live-tag").classList.toggle("on", live);
+  $("nosignal").classList.toggle("off", live);
+  const img = $("live-frame");
+  if (!img.dataset.live) {
+    img.dataset.live = "1";
+    img.src = `/api/frame.mjpeg?t=${Date.now()}`;
   }
-
-  let ascii = b.ascii || s.lantern?.excerpt || "no window\nbrowser is cold.";
-  if (!b.ascii && s.lantern?.excerpt) {
-    ascii = `${title}\n${url}\n${"-".repeat(48)}\n${s.lantern.excerpt}`;
-  }
-
-  const escaped = escapeHtml(ascii);
-  const html = escaped.replace(/\[(\d+)\]/g, (_, n) => {
-    const on = Number(n) === marked ? " on" : "";
-    return `<span class="link${on}" data-i="${n}">[${n}]</span>`;
-  });
-  $("view").innerHTML = html + (links.length && !/\[1\]/.test(ascii)
-    ? "\n\n" + links.map((l) => {
-      const on = l.i === marked ? " on" : "";
-      return `<span class="link${on}" data-i="${l.i}">[${l.i}]</span> ${escapeHtml(l.text)}`;
-    }).join("\n")
-    : "");
-
-  $("view").querySelectorAll(".link").forEach((el) => {
-    el.onclick = () => {
-      marked = Number(el.dataset.i);
-      renderView(lastState);
-    };
-  });
 }
 
 function eventsOf(s) {

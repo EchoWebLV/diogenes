@@ -3,7 +3,7 @@
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>groklius // rack</title>
+    <title>groklius — live</title>
     <link rel="icon" href="/logo.png" type="image/png" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -15,13 +15,20 @@
     <div id="boot" class="boot"></div>
 
     <div class="rack">
-      <pre class="bar" id="bar"></pre>
+      <header class="bar">
+        <span id="bar"></span>
+        <a class="obs-link" href="/obs.html" target="_blank" rel="noreferrer">obs / pump.fun feed</a>
+      </header>
 
       <section class="pane view">
-        <pre class="frame" id="view-chrome"></pre>
+        <div class="chrome">
+          <span class="dots" aria-hidden="true"></span>
+          <div class="url" id="lantern-url">about:blank</div>
+          <span class="live-tag" id="live-tag">NO SIGNAL</span>
+        </div>
         <div class="viewport">
-          <img id="live-frame" alt="live browser" hidden />
-          <pre class="body" id="view"></pre>
+          <img id="live-frame" alt="live browser stream" src="/api/frame.mjpeg" />
+          <div class="nosignal" id="nosignal">site is the stream. browser starts when he wakes.</div>
         </div>
       </section>
 
@@ -40,7 +47,7 @@
     <div id="overlay" class="overlay" hidden>
       <pre class="overlay-head" id="overlay-head"></pre>
       <pre class="overlay-body" id="overlay-body"></pre>
-      <pre class="overlay-foot">[esc] close   [j/k] move   [1-9] mark link   [c] copy wallet</pre>
+      <pre class="overlay-foot">[esc] close   [j/k] move   [c] copy wallet</pre>
     </div>
 
     <script type="module" src="/app.js"></script>
