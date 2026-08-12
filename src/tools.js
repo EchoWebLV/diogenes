@@ -8,7 +8,9 @@ import {
   capture,
 } from "./browser.js";
 import { draftPost, forget, journal, logEvent, patchState, remember } from "./store.js";
+import { composeShill, launchCoin, readCoins } from "./pump.js";
 import { inspectAccount, sendSol, walletStatus, writeMemo } from "./wallet.js";
+import { payUrl } from "./x402.js";
 
 export async function runLocalTool(name, args) {
   switch (name) {
@@ -102,6 +104,42 @@ export async function runLocalTool(name, args) {
       try {
         const result = await writeMemo(args.text);
         if (result.ok) logEvent("chain", `memo ${result.sig}`, { sig: result.sig });
+        return result;
+      } catch (err) {
+        return { ok: false, error: String(err.message || err) };
+      }
+    }
+    case "launch_coin": {
+      try {
+        const result = await launchCoin(args);
+        if (result.ok) logEvent("chain", `launched ${result.coin.symbol} ${result.coin.mint}`, { mint: result.coin.mint });
+        return result;
+      } catch (err) {
+        return { ok: false, error: String(err.message || err) };
+      }
+    }
+    case "list_coins": {
+      return { ok: true, coins: readCoins() };
+    }
+    case "shill": {
+      const text = composeShill({ extra: args.extra });
+      if (args.post) {
+        try {
+          const posted = await browserPostX(text);
+          return { ok: posted.ok, text, posted };
+        } catch (err) {
+          const draft = draftPost(text);
+          return { ok: false, text, draft, error: String(err.message || err) };
+        }
+      }
+      const draft = draftPost(text);
+      logEvent("draft", text);
+      return { ok: true, text, draft };
+    }
+    case "x402_pay": {
+      try {
+        const result = await payUrl(args.url);
+        if (result.ok) logEvent("chain", `x402 paid ${args.url}`);
         return result;
       } catch (err) {
         return { ok: false, error: String(err.message || err) };

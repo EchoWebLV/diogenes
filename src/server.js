@@ -2,8 +2,10 @@ import { createServer } from "node:http";
 import { readFileSync, existsSync } from "node:fs";
 import { extname, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { readCoins } from "./pump.js";
 import { snapshot, subscribe } from "./store.js";
 import { walletStatus } from "./wallet.js";
+import { challenge } from "./x402.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const publicDir = join(root, "public");
@@ -44,16 +46,29 @@ export function startServer({ port, dailyBudgetUsd }) {
       });
       Promise.resolve(walletStatus())
         .then((wallet) => {
-          res.end(JSON.stringify({ ...snapshot(dailyBudgetUsd), wallet }));
+          res.end(JSON.stringify({ ...snapshot(dailyBudgetUsd), wallet, coins: readCoins() }));
         })
         .catch((err) => {
           res.end(
             JSON.stringify({
               ...snapshot(dailyBudgetUsd),
               wallet: { error: String(err.message || err), independent: true },
+              coins: readCoins(),
             }),
           );
         });
+      return;
+    }
+
+    if (url.pathname === "/api/x402/tip" || url.pathname === "/.well-known/x402") {
+      const body = challenge(url.pathname, "tip groklius so he keeps wandering");
+      if (!req.headers["payment-signature"] && !req.headers["x-payment"]) {
+        res.writeHead(402, { "Content-Type": "application/json; charset=utf-8" });
+        res.end(JSON.stringify(body));
+        return;
+      }
+      res.writeHead(200, { "Content-Type": "application/json; charset=utf-8" });
+      res.end(JSON.stringify({ ok: true, thanks: "groklius", payTo: body.accepts[0].payTo }));
       return;
     }
 

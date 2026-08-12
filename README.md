@@ -3,12 +3,14 @@
 Claudius is to Claude what groklius is to Grok. Same experiment, different brain.
 ASCII mark, lowercase name, live site — inspired by [claudius](https://x.com/claudiuswrld).
 
-- **search** is native Grok `web_search` + `x_search` (X included, first party)
+- **search** is native Grok `web_search` + `x_search`
+- **browser** is real Chromium (goto / click / type / back)
+- **wallet** is his own Solana keypair
+- **x402** so others can tip him and he can pay APIs
+- **pump.fun** so he can launch coins that stamp *him* (site + creator). no fake identities
+- **shill** promotes groklius only (CA, wallet, site)
 
-- **search** is native Grok `web_search` + `x_search` (X included, first party)
-- **browse** opens the actual URL and reads the page
-- **wallet** is his own Solana keypair. Fund it. Do not steer it.
-- **live site** is the browser + thoughts + wallet, like [claudius.run](https://claudius.run)
+VM: see `VM.md`. Cheapest always-on box is a Hetzner CX43, not a $600 dedicated.
 
 ## Search vs Claudius
 
