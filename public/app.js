@@ -1,6 +1,12 @@
 const $ = (id) => document.getElementById(id);
 
-const FILTERS = ["ALL", "THINK", "ACT", "CHAIN", "SAY"];
+const FILTERS = [
+  { id: "ALL", label: "all" },
+  { id: "THINK", label: "thoughts" },
+  { id: "ACT", label: "actions" },
+  { id: "CHAIN", label: "chain" },
+  { id: "SAY", label: "posts" },
+];
 let filter = "ALL";
 let selected = 0;
 let lastState = null;
@@ -8,7 +14,7 @@ let marked = 0;
 
 const FILTER_MAP = {
   ALL: () => true,
-  THINK: (e) => e.kind === "think" || e.kind === "say",
+  THINK: (e) => e.kind === "think",
   ACT: (e) => ["did", "browse", "lantern", "search", "xsearch"].includes(e.kind),
   CHAIN: (e) => e.kind === "chain",
   SAY: (e) => e.kind === "say" || e.kind === "draft" || e.kind === "journal",
@@ -99,17 +105,21 @@ function eventsOf(s) {
 }
 
 function renderStream(s) {
-  $("stream-chrome").textContent = "+-- stream" + " ".repeat(28) + "--+";
-  $("tabs").innerHTML = FILTERS.map(
-    (f) => `<b class="${f === filter ? "on" : ""}" data-f="${f}">[${f}]</b>`,
-  ).join("");
-  $("tabs").querySelectorAll("b").forEach((el) => {
+  const all = s.events || [];
+  $("stream-chrome").textContent = "+-- stream  (filters below)";
+  $("tabs").innerHTML = FILTERS.map((f) => {
+    const n = all.filter((e) => FILTER_MAP[f.id](e)).length;
+    return `<button type="button" class="${f.id === filter ? "on" : ""}" data-f="${f.id}">${f.label} <span class="n">${n}</span></button>`;
+  }).join("");
+  $("tabs").querySelectorAll("button").forEach((el) => {
     el.onclick = () => {
       filter = el.dataset.f;
       selected = 0;
       renderStream(lastState);
     };
   });
+  const active = FILTERS.find((f) => f.id === filter);
+  $("filter-hint").textContent = `showing ${active.label} · click a line to read it`;
 
   const ev = eventsOf(s);
   if (selected >= ev.length) selected = Math.max(0, ev.length - 1);

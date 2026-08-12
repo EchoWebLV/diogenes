@@ -105,19 +105,39 @@ body {
 }
 .body .link.on { background: rgba(255, 77, 26, 0.15); }
 
-.tabs {
+.filters {
   display: flex;
-  gap: 0;
-  padding: 0 10px 4px;
-  color: var(--dim);
+  flex-wrap: wrap;
+  gap: 6px;
+  padding: 4px 10px 2px;
   flex: 0 0 auto;
 }
-.tabs b {
-  font-weight: 500;
+.filters button {
+  font: inherit;
+  font-size: 11px;
+  letter-spacing: 0.04em;
+  text-transform: lowercase;
+  color: var(--ink);
+  background: #14110a;
+  border: 1px solid var(--line);
+  border-radius: 2px;
+  padding: 5px 8px;
   cursor: pointer;
-  padding: 0 6px;
 }
-.tabs b.on { color: var(--hot); }
+.filters button:hover { border-color: var(--hot); color: var(--hot); }
+.filters button.on {
+  color: #140c08;
+  background: var(--hot);
+  border-color: var(--hot);
+}
+.filters button .n { color: inherit; opacity: 0.75; }
+.hint {
+  margin: 0;
+  padding: 0 10px 6px;
+  color: var(--dim);
+  font-size: 11px;
+  flex: 0 0 auto;
+}
 
 #stream {
   list-style: none;
