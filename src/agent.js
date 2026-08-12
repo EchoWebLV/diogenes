@@ -10,6 +10,7 @@ import {
   remainingUsd,
 } from "./store.js";
 import { runLocalTool } from "./tools.js";
+import { walletStatus } from "./wallet.js";
 import { createResponse, parseOutput } from "./xai.js";
 
 function sleep(ms) {
@@ -64,6 +65,7 @@ export function createAgent(config) {
       spend: { ...spend, remainingUsd: left },
       lantern: state.lantern,
       lastIdle: state.lastIdle,
+      wallet: await walletStatus(),
     });
 
     let previousResponseId = state.previousResponseId;
@@ -116,7 +118,7 @@ export function createAgent(config) {
       const outputs = [];
       for (const call of parsed.functionCalls) {
         logEvent("did", `${call.name}`, { args: call.arguments });
-        const result = runLocalTool(call.name, call.arguments || {});
+        const result = await runLocalTool(call.name, call.arguments || {});
         outputs.push({
           type: "function_call_output",
           call_id: call.call_id,

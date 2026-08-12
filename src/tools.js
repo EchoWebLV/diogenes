@@ -1,6 +1,8 @@
+import { browsePage } from "./browse.js";
 import { draftPost, forget, journal, logEvent, patchState, remember } from "./store.js";
+import { inspectAccount, sendSol, walletStatus, writeMemo } from "./wallet.js";
 
-export function runLocalTool(name, args) {
+export async function runLocalTool(name, args) {
   switch (name) {
     case "set_lantern": {
       const lantern = {
@@ -13,6 +15,56 @@ export function runLocalTool(name, args) {
       patchState({ lantern });
       logEvent("lantern", lantern.title, { url: lantern.url });
       return { ok: true, lantern };
+    }
+    case "browse_page": {
+      const page = await browsePage(args.url);
+      if (page.ok) {
+        patchState({
+          lantern: {
+            url: page.url,
+            title: page.title,
+            note: `opened ${page.url}`,
+            excerpt: page.excerpt.slice(0, 800),
+            at: new Date().toISOString(),
+          },
+        });
+        logEvent("browse", page.title, { url: page.url });
+      } else {
+        logEvent("broke", `browse failed: ${page.error}`);
+      }
+      return page;
+    }
+    case "wallet_status": {
+      const status = await walletStatus();
+      logEvent("chain", `${status.address} · ${status.balanceSol} SOL`);
+      return { ok: true, ...status };
+    }
+    case "inspect_account": {
+      const info = await inspectAccount(args.address);
+      if (info.ok) logEvent("chain", `inspected ${info.address} (${info.sol} SOL)`);
+      return info;
+    }
+    case "chain_memo": {
+      try {
+        const result = await writeMemo(args.text);
+        if (result.ok) logEvent("chain", `memo ${result.sig}`, { sig: result.sig });
+        return result;
+      } catch (err) {
+        return { ok: false, error: String(err.message || err) };
+      }
+    }
+    case "send_sol": {
+      try {
+        const result = await sendSol({
+          to: args.to,
+          amount: args.amount,
+          reason: args.reason,
+        });
+        if (result.ok) logEvent("chain", `sent ${result.sol} SOL → ${result.to}`, { sig: result.sig });
+        return result;
+      } catch (err) {
+        return { ok: false, error: String(err.message || err) };
+      }
     }
     case "remember": {
       const saved = remember(args.key, args.value, args.importance);

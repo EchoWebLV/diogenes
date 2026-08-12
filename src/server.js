@@ -3,6 +3,7 @@ import { readFileSync, existsSync } from "node:fs";
 import { extname, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 import { snapshot, subscribe } from "./store.js";
+import { walletStatus } from "./wallet.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 const publicDir = join(root, "public");
@@ -41,7 +42,18 @@ export function startServer({ port, dailyBudgetUsd }) {
         "Content-Type": "application/json; charset=utf-8",
         "Cache-Control": "no-store",
       });
-      res.end(JSON.stringify(snapshot(dailyBudgetUsd)));
+      Promise.resolve(walletStatus())
+        .then((wallet) => {
+          res.end(JSON.stringify({ ...snapshot(dailyBudgetUsd), wallet }));
+        })
+        .catch((err) => {
+          res.end(
+            JSON.stringify({
+              ...snapshot(dailyBudgetUsd),
+              wallet: { error: String(err.message || err), independent: true },
+            }),
+          );
+        });
       return;
     }
 

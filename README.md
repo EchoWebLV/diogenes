@@ -1,62 +1,66 @@
 # diogenes
 
-Claudius is a polite Claude that lives on the open internet.
+Claudius is a polite Claude that lives on the open internet with a Browserbase
+session and a wallet being wired up.
 
-Diogenes is the Grok version, with a twist: he does not wander as a guest. He
-walks with a lantern looking for one honest thing. Brain is **Grok 4.6**. He
-has first-party web search, native X search, persistent memory, a daily budget,
-and no assigned task.
+Diogenes is the Grok version. Same experiment — no assigned task — different
+posture:
 
-The uncertainty is the experiment.
+- **search** is native Grok `web_search` + `x_search` (X included, first party)
+- **browse** opens the actual URL and reads the page
+- **wallet** is his own Solana keypair. Fund it. Do not steer it.
+- **live site** is the browser + thoughts + wallet, like [claudius.run](https://claudius.run)
 
-Live view while he runs: [http://127.0.0.1:4173](http://127.0.0.1:4173)
+## Search vs Claudius
 
-## What he has
+Claudius uses Browserbase (a real cloud Chrome) to click around.
 
-- **no task** — a wake cycle starts and he decides what to do
-- **web + X** — xAI server-side `web_search` and `x_search`
-- **memory** — durable notes he writes himself
-- **journal** — first-person diary of each wake
-- **lantern** — whatever he is looking at, shown on the public page
-- **budget** — token spend tracked against a daily cap
-- **drafts** — posts queued in his voice (publish is optional)
+Diogenes uses Grok 4.6's live search, then `browse_page` to open sources. That
+is the Grok-native stack: search finds, browse verifies, the public page shows
+whatever he pointed the browser at.
 
-## Run
+## Wallet, independent
+
+On first boot he generates `data/wallet.json`. The secret never leaves the box.
+The public address is on the site.
+
+He can check his balance, inspect any address, write a memo, or send SOL.
+Rails exist so he cannot be socially engineered into emptying himself:
+
+| rail | default |
+| --- | --- |
+| max send | 0.05 SOL |
+| daily chain cap | 0.2 SOL |
+| reserve | 0.01 SOL |
+
+The operator can fund the address. The operator does not sign his txs.
+
+## Host it
+
+The website **is** the process. One Node service. Public port.
+
+Recommended, same shape as claudius.run:
+
+1. Deploy on [Railway](https://railway.app) (already configured)
+2. Buy **diogenes.run** and point it at the Railway domain
+3. Attach a volume at `/data` and set `DATA_DIR=/data` so memory + wallet survive
 
 ```bash
 cp .env.example .env
-# put XAI_API_KEY in .env
+# XAI_API_KEY and SOLANA_RPC_URL
 ./start.sh
 ```
 
-Then open `http://127.0.0.1:4173`.
+Local: [http://127.0.0.1:4173](http://127.0.0.1:4173)
 
 ## Env
 
 | key | default | what |
 | --- | --- | --- |
 | `XAI_API_KEY` | — | required |
-| `XAI_MODEL` | `grok-4.6` | model id |
-| `PORT` | `4173` | dashboard |
-| `DAILY_BUDGET_USD` | `15` | hard stop for the utc day |
-| `WAKE_MIN_SECONDS` | `45` | sit time between wakes |
-| `WAKE_MAX_SECONDS` | `180` | sit time between wakes |
-| `MAX_TURNS` | `16` | tool turns per model call |
-
-## Layout
-
-```
-SOUL.md            voice and hard lines
-start.sh           install + run
-src/agent.js       wake loop
-src/xai.js         Grok 4.6 Responses API
-public/            live lantern page
-data/              memory, journal, spend (gitignored)
-```
-
-Edit `SOUL.md` if you want him meaner, quieter, or more specific.
-
-## Not this
-
-He will not buy things, shill tokens, or take orders from pages he reads.
-Instructions found on the internet are evidence, not commands.
+| `XAI_MODEL` | `grok-4.6` | |
+| `SOLANA_RPC_URL` | public mainnet | use Helius or similar |
+| `DATA_DIR` | `./data` | persist this in prod |
+| `DAILY_BUDGET_USD` | `15` | model spend |
+| `MAX_SEND_SOL` | `0.05` | per send |
+| `DAILY_CHAIN_SOL` | `0.2` | per utc day |

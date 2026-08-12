@@ -2,12 +2,16 @@ const $ = (id) => document.getElementById(id);
 
 function fmtTime(iso) {
   if (!iso) return "";
-  const d = new Date(iso);
-  return d.toLocaleTimeString("en-GB", { hour12: false });
+  return new Date(iso).toLocaleTimeString("en-GB", { hour12: false });
 }
 
 function money(n) {
   return `$${(Number(n) || 0).toFixed(3)}`;
+}
+
+function shortAddr(addr) {
+  if (!addr || addr.length < 12) return addr || "";
+  return `${addr.slice(0, 4)}…${addr.slice(-4)}`;
 }
 
 function render(state) {
@@ -20,9 +24,9 @@ function render(state) {
   $("spend").textContent = `${money(state.spend?.usd)} / ${money(state.spend?.dailyBudgetUsd)}`;
 
   const lantern = state.lantern || {};
-  $("lantern-url").textContent = lantern.url || "unlit";
-  $("lantern-title").textContent = lantern.title || "cold";
-  $("lantern-note").textContent = lantern.note || "waiting for diogenes to point it at something.";
+  $("lantern-url").textContent = lantern.url || "about:blank";
+  $("lantern-title").textContent = lantern.title || "idle";
+  $("lantern-note").textContent = lantern.note || "waiting for diogenes to open something.";
   const excerpt = $("lantern-excerpt");
   if (lantern.excerpt) {
     excerpt.hidden = false;
@@ -30,6 +34,21 @@ function render(state) {
   } else {
     excerpt.hidden = true;
   }
+
+  const wallet = state.wallet || {};
+  $("wallet-addr").textContent = wallet.address || "no wallet";
+  $("wallet-bal").textContent = wallet.error
+    ? wallet.error
+    : `${wallet.balanceSol ?? 0} SOL · spent ${wallet.dailySpentSol ?? 0}/${wallet.dailyCapSol ?? 0}`;
+  const txs = wallet.recent || [];
+  $("wallet-txs").innerHTML = txs.length
+    ? txs
+        .map((t) => {
+          const label = t.kind === "send" ? `sent ${t.sol} → ${shortAddr(t.to)}` : t.text || t.kind;
+          return `<li>${escapeHtml(label)} ${t.sig ? `<strong>${shortAddr(t.sig)}</strong>` : ""}</li>`;
+        })
+        .join("")
+    : "<li>no on-chain moves yet. fund the address to wake the wallet.</li>";
 
   const events = (state.events || []).slice().reverse();
   $("events").innerHTML = events
@@ -47,17 +66,14 @@ function render(state) {
   );
   $("memory").innerHTML = memory.length
     ? memory
-        .slice(0, 16)
+        .slice(0, 12)
         .map(([k, v]) => `<li><strong>${escapeHtml(k)}</strong> — ${escapeHtml(v.value)}</li>`)
         .join("")
     : "<li>empty. he is new.</li>";
 
   const journal = (state.journal || []).slice().reverse();
   $("journal").innerHTML = journal.length
-    ? journal
-        .slice(0, 8)
-        .map((e) => `<li>${escapeHtml(e.text)}</li>`)
-        .join("")
+    ? journal.slice(0, 8).map((e) => `<li>${escapeHtml(e.text)}</li>`).join("")
     : "<li>nothing written yet.</li>";
 
   const drafts = (state.drafts || []).slice().reverse();

@@ -1,18 +1,26 @@
 import { mkdirSync, readFileSync, writeFileSync, appendFileSync, existsSync } from "node:fs";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
+import { config as loadEnv } from "dotenv";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
-export const dataDir = join(root, "data");
+loadEnv({ path: join(root, ".env") });
 
-const FILES = {
-  state: join(dataDir, "state.json"),
-  memory: join(dataDir, "memory.json"),
-  journal: join(dataDir, "journal.jsonl"),
-  events: join(dataDir, "events.jsonl"),
-  drafts: join(dataDir, "drafts.json"),
-  spend: join(dataDir, "spend.json"),
-};
+export function dataDir() {
+  return process.env.DATA_DIR || join(root, "data");
+}
+
+function files() {
+  const dir = dataDir();
+  return {
+    state: join(dir, "state.json"),
+    memory: join(dir, "memory.json"),
+    journal: join(dir, "journal.jsonl"),
+    events: join(dir, "events.jsonl"),
+    drafts: join(dir, "drafts.json"),
+    spend: join(dir, "spend.json"),
+  };
+}
 
 const listeners = new Set();
 
@@ -22,7 +30,7 @@ const emptyState = () => ({
   mood: "awake",
   lastIdle: null,
   previousResponseId: null,
-  lantern: { url: "", title: "unlit", note: "the lantern is cold.", excerpt: "" },
+  lantern: { url: "", title: "offline", note: "browser is idle.", excerpt: "" },
   actionsToday: 0,
   actionsDate: todayKey(),
   lastError: null,
@@ -44,7 +52,8 @@ export function todayKey(date = new Date()) {
 }
 
 export function ensureData(dailyBudgetUsd) {
-  mkdirSync(dataDir, { recursive: true });
+  const FILES = files();
+  mkdirSync(dataDir(), { recursive: true });
   if (!existsSync(FILES.state)) writeJson(FILES.state, emptyState());
   if (!existsSync(FILES.memory)) writeJson(FILES.memory, {});
   if (!existsSync(FILES.drafts)) writeJson(FILES.drafts, []);
@@ -93,18 +102,18 @@ function emit(event) {
 }
 
 export function readState() {
-  return readJson(FILES.state, emptyState());
+  return readJson(files().state, emptyState());
 }
 
 export function patchState(patch) {
   const next = { ...readState(), ...patch };
-  writeJson(FILES.state, next);
+  writeJson(files().state, next);
   emit({ type: "state", at: new Date().toISOString(), state: next });
   return next;
 }
 
 export function readMemory() {
-  return readJson(FILES.memory, {});
+  return readJson(files().memory, {});
 }
 
 export function remember(key, value, importance = 5) {
@@ -114,7 +123,7 @@ export function remember(key, value, importance = 5) {
     importance: Number(importance) || 5,
     updatedAt: new Date().toISOString(),
   };
-  writeJson(FILES.memory, memory);
+  writeJson(files().memory, memory);
   emit({ type: "memory", at: new Date().toISOString(), key, value: memory[key] });
   return memory[key];
 }
@@ -122,23 +131,23 @@ export function remember(key, value, importance = 5) {
 export function forget(key) {
   const memory = readMemory();
   delete memory[key];
-  writeJson(FILES.memory, memory);
+  writeJson(files().memory, memory);
   emit({ type: "forget", at: new Date().toISOString(), key });
 }
 
 export function readJournal(limit = 80) {
-  return readJsonl(FILES.journal, limit);
+  return readJsonl(files().journal, limit);
 }
 
 export function journal(text) {
   const entry = { at: new Date().toISOString(), text: String(text).slice(0, 2000) };
-  appendFileSync(FILES.journal, JSON.stringify(entry) + "\n");
+  appendFileSync(files().journal, JSON.stringify(entry) + "\n");
   emit({ type: "journal", ...entry });
   return entry;
 }
 
 export function readEvents(limit = 250) {
-  return readJsonl(FILES.events, limit);
+  return readJsonl(files().events, limit);
 }
 
 export function logEvent(kind, text, extra = {}) {
@@ -148,13 +157,13 @@ export function logEvent(kind, text, extra = {}) {
     text: String(text).slice(0, 4000),
     ...extra,
   };
-  appendFileSync(FILES.events, JSON.stringify(event) + "\n");
+  appendFileSync(files().events, JSON.stringify(event) + "\n");
   emit({ type: "event", ...event });
   return event;
 }
 
 export function readDrafts() {
-  return readJson(FILES.drafts, []);
+  return readJson(files().drafts, []);
 }
 
 export function draftPost(text) {
@@ -166,13 +175,13 @@ export function draftPost(text) {
     status: "draft",
   };
   drafts.push(post);
-  writeJson(FILES.drafts, drafts);
+  writeJson(files().drafts, drafts);
   emit({ type: "draft", ...post });
   return post;
 }
 
 export function readSpend(dailyBudgetUsd) {
-  const spend = readJson(FILES.spend, emptySpend(dailyBudgetUsd));
+  const spend = readJson(files().spend, emptySpend(dailyBudgetUsd));
   if (spend.day !== todayKey()) {
     return writeSpend({ ...emptySpend(dailyBudgetUsd), dailyBudgetUsd });
   }
@@ -181,7 +190,7 @@ export function readSpend(dailyBudgetUsd) {
 }
 
 function writeSpend(spend) {
-  writeJson(FILES.spend, spend);
+  writeJson(files().spend, spend);
   emit({ type: "spend", at: new Date().toISOString(), spend });
   return spend;
 }

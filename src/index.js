@@ -4,6 +4,7 @@ import { fileURLToPath } from "node:url";
 import { createAgent } from "./agent.js";
 import { startServer } from "./server.js";
 import { ensureData, logEvent, patchState } from "./store.js";
+import { loadKeypair, publicAddress } from "./wallet.js";
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..");
 loadEnv({ path: join(root, ".env") });
@@ -25,14 +26,18 @@ const config = {
 };
 
 ensureData(config.dailyBudgetUsd);
+loadKeypair();
 patchState({ status: "booting" });
 
 const agent = createAgent(config);
 await startServer({ port: config.port, dailyBudgetUsd: config.dailyBudgetUsd });
 
+const address = publicAddress();
 console.log(`diogenes is live on http://127.0.0.1:${config.port}`);
 console.log(`brain: ${config.model}  daily budget: $${config.dailyBudgetUsd}`);
+console.log(`wallet: ${address}`);
 logEvent("sys", `dashboard on :${config.port}`);
+logEvent("chain", `independent wallet ${address}`);
 
 const stop = () => {
   agent.stop();
