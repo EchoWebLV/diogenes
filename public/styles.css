@@ -43,6 +43,7 @@ body {
   flex: 0 0 40px;
   border: 1px solid var(--line);
   background: #000;
+  object-fit: cover;
 }
 h1 {
   font-family: "Space Grotesk", sans-serif;
