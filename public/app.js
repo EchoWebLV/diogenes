@@ -156,7 +156,7 @@ function renderVitals(s) {
   $("vitals").innerHTML =
     `wallet <span class="copy" id="copy-addr">${escapeHtml(w.address || "—")}</span>   ` +
     `<span class="ok">${w.balanceSol ?? 0} SOL</span>   spent ${w.dailySpentSol ?? 0}/${w.dailyCapSol ?? 0}   ` +
-    `mood ${escapeHtml(mood)}\n` +
+    `mood ${escapeHtml(mood)}   browser ${escapeHtml(s.browserBackend || s.browserHost?.backend || "—")}\n` +
     `ca     ${escapeHtml(ca)}\n` +
     `mem   ${escapeHtml(mem)}\n` +
     `draft ${escapeHtml(String(draft).slice(0, 90))}`;

@@ -7,6 +7,15 @@ let browser;
 let context;
 let page;
 let lastLinks = [];
+let bbSession = null;
+
+function browserbaseKey() {
+  return (process.env.BROWSERBASE_API_KEY || "").trim();
+}
+
+export function browserBackend() {
+  return browserbaseKey() ? "browserbase" : "local";
+}
 
 function statePath() {
   return join(dataDir(), "browser-state.json");
@@ -18,6 +27,36 @@ export async function ensureBrowser() {
     ({ chromium } = await import("playwright"));
   }
   mkdirSync(dataDir(), { recursive: true });
+
+  const key = browserbaseKey();
+  if (key) {
+    const { default: Browserbase } = await import("@browserbasehq/sdk");
+    const bb = new Browserbase({ apiKey: key });
+    const session = await bb.sessions.create();
+    bbSession = session;
+    browser = await chromium.connectOverCDP(session.connectUrl);
+    context = browser.contexts()[0];
+    page = context.pages()[0] || (await context.newPage());
+    page.setDefaultTimeout(20_000);
+    let debuggerUrl = "";
+    try {
+      const debug = await bb.sessions.debug(session.id);
+      debuggerUrl = debug?.debuggerUrl || debug?.debuggerFullscreenUrl || "";
+    } catch {
+      /* optional */
+    }
+    patchState({
+      browserHost: {
+        backend: "browserbase",
+        sessionId: session.id,
+        debuggerUrl,
+        replay: `https://browserbase.com/sessions/${session.id}`,
+      },
+    });
+    logEvent("sys", `browserbase session ${session.id}`);
+    return page;
+  }
+
   browser = await chromium.launch({
     headless: process.env.BROWSER_HEADLESS !== "0",
     args: ["--disable-dev-shm-usage"],
@@ -31,6 +70,7 @@ export async function ensureBrowser() {
   });
   page = await context.newPage();
   page.setDefaultTimeout(20_000);
+  patchState({ browserHost: { backend: "local" } });
   return page;
 }
 
@@ -42,6 +82,7 @@ export async function closeBrowser() {
     /* ignore */
   }
   browser = context = page = null;
+  bbSession = null;
 }
 
 export async function persistSession() {

@@ -12,6 +12,7 @@
     "node": ">=20"
   },
   "dependencies": {
+    "@browserbasehq/sdk": "^2.17.0",
     "@coral-xyz/anchor": "^0.32.1",
     "@scure/base": "^2.3.0",
     "@solana/kit": "^5.5.1",

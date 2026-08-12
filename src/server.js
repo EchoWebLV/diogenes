@@ -2,6 +2,7 @@ import { createServer } from "node:http";
 import { readFileSync, existsSync } from "node:fs";
 import { extname, join, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
+import { browserBackend } from "./browser.js";
 import { readCoins } from "./pump.js";
 import { snapshot, subscribe } from "./store.js";
 import { walletStatus } from "./wallet.js";
@@ -46,7 +47,14 @@ export function startServer({ port, dailyBudgetUsd }) {
       });
       Promise.resolve(walletStatus())
         .then((wallet) => {
-          res.end(JSON.stringify({ ...snapshot(dailyBudgetUsd), wallet, coins: readCoins() }));
+          res.end(
+            JSON.stringify({
+              ...snapshot(dailyBudgetUsd),
+              wallet,
+              coins: readCoins(),
+              browserBackend: browserBackend(),
+            }),
+          );
         })
         .catch((err) => {
           res.end(
@@ -54,6 +62,7 @@ export function startServer({ port, dailyBudgetUsd }) {
               ...snapshot(dailyBudgetUsd),
               wallet: { error: String(err.message || err), independent: true },
               coins: readCoins(),
+              browserBackend: browserBackend(),
             }),
           );
         });
