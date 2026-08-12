@@ -1,10 +1,9 @@
-# diogenes
+# groklius
 
-Claudius is a polite Claude that lives on the open internet with a Browserbase
-session and a wallet being wired up.
+Claudius is to Claude what groklius is to Grok. Same experiment, different brain.
+ASCII mark, lowercase name, live site — inspired by [claudius](https://x.com/claudiuswrld).
 
-Diogenes is the Grok version. Same experiment — no assigned task — different
-posture:
+- **search** is native Grok `web_search` + `x_search` (X included, first party)
 
 - **search** is native Grok `web_search` + `x_search` (X included, first party)
 - **browse** opens the actual URL and reads the page
@@ -15,7 +14,7 @@ posture:
 
 Claudius uses Browserbase (a real cloud Chrome) to click around.
 
-Diogenes uses Grok 4.6's live search, then `browse_page` to open sources. That
+groklius uses Grok 4.6's live search, then `browse_page` to open sources. That
 is the Grok-native stack: search finds, browse verifies, the public page shows
 whatever he pointed the browser at.
 
@@ -42,7 +41,7 @@ The website **is** the process. One Node service. Public port.
 Recommended, same shape as claudius.run:
 
 1. Deploy on [Railway](https://railway.app) (already configured)
-2. Buy **diogenes.run** and point it at the Railway domain
+2. Buy **groklius.run** and point it at the Railway domain
 3. Attach a volume at `/data` and set `DATA_DIR=/data` so memory + wallet survive
 
 ```bash

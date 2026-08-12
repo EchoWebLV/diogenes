@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 400" role="img" aria-label="groklius">
+  <rect width="400" height="400" fill="#050505"/>
+  <g fill="#ff3b1f">
+    <!-- body -->
+    <ellipse cx="176" cy="230" rx="118" ry="92" transform="rotate(-18 176 230)"/>
+    <!-- head -->
+    <circle cx="286" cy="148" r="58"/>
+    <!-- beak -->
+    <path d="M338 142 L392 158 L336 176 Z"/>
+    <!-- tail -->
+    <path d="M70 200 L28 168 L52 236 Z"/>
+    <!-- foot -->
+    <path d="M168 312 L176 352 L214 336 L188 314 Z"/>
+    <!-- eye -->
+    <circle cx="300" cy="136" r="11" fill="#050505"/>
+  </g>
+</svg>

@@ -20,13 +20,13 @@ function render(state) {
   pill.className = `pill ${status}`;
   pill.innerHTML = `<i></i> ${status === "acting" ? "acting now" : status}`;
   $("mood").textContent = state.mood || "awake";
-  $("actions").textContent = `${state.actionsToday || 0} actions today`;
-  $("spend").textContent = `${money(state.spend?.usd)} / ${money(state.spend?.dailyBudgetUsd)}`;
+  $("actions").textContent = `${state.actionsToday || 0} acts`;
+  $("spend").textContent = money(state.spend?.usd);
 
   const lantern = state.lantern || {};
   $("lantern-url").textContent = lantern.url || "about:blank";
   $("lantern-title").textContent = lantern.title || "idle";
-  $("lantern-note").textContent = lantern.note || "waiting for diogenes to open something.";
+  $("lantern-note").textContent = lantern.note || "waiting to open something.";
   const excerpt = $("lantern-excerpt");
   if (lantern.excerpt) {
     excerpt.hidden = false;
@@ -40,7 +40,7 @@ function render(state) {
   $("wallet-bal").textContent = wallet.error
     ? wallet.error
     : `${wallet.balanceSol ?? 0} SOL · spent ${wallet.dailySpentSol ?? 0}/${wallet.dailyCapSol ?? 0}`;
-  const txs = wallet.recent || [];
+  const txs = (wallet.recent || []).slice(0, 2);
   $("wallet-txs").innerHTML = txs.length
     ? txs
         .map((t) => {
@@ -48,7 +48,7 @@ function render(state) {
           return `<li>${escapeHtml(label)} ${t.sig ? `<strong>${shortAddr(t.sig)}</strong>` : ""}</li>`;
         })
         .join("")
-    : "<li>no on-chain moves yet. fund the address to wake the wallet.</li>";
+    : "<li>unfunded</li>";
 
   const events = (state.events || []).slice().reverse();
   $("events").innerHTML = events
@@ -66,20 +66,20 @@ function render(state) {
   );
   $("memory").innerHTML = memory.length
     ? memory
-        .slice(0, 12)
+        .slice(0, 3)
         .map(([k, v]) => `<li><strong>${escapeHtml(k)}</strong> — ${escapeHtml(v.value)}</li>`)
         .join("")
-    : "<li>empty. he is new.</li>";
+    : "<li>empty</li>";
 
   const journal = (state.journal || []).slice().reverse();
   $("journal").innerHTML = journal.length
-    ? journal.slice(0, 8).map((e) => `<li>${escapeHtml(e.text)}</li>`).join("")
-    : "<li>nothing written yet.</li>";
+    ? journal.slice(0, 3).map((e) => `<li>${escapeHtml(e.text)}</li>`).join("")
+    : "<li>—</li>";
 
   const drafts = (state.drafts || []).slice().reverse();
   $("drafts").innerHTML = drafts.length
-    ? drafts.map((d) => `<li>${escapeHtml(d.text)}</li>`).join("")
-    : "<li>no posts drafted.</li>";
+    ? drafts.slice(0, 3).map((d) => `<li>${escapeHtml(d.text)}</li>`).join("")
+    : "<li>—</li>";
 }
 
 function escapeHtml(s) {

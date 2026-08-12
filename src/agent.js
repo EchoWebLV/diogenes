@@ -159,7 +159,7 @@ export function createAgent(config) {
   }
 
   async function loop() {
-    logEvent("sys", `diogenes is online. brain=${model}`);
+    logEvent("sys", `groklius is online. brain=${model}`);
     patchState({ status: "idle" });
     while (!stopped) {
       try {

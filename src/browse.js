@@ -22,7 +22,7 @@ export async function browsePage(rawUrl) {
       signal: controller.signal,
       redirect: "follow",
       headers: {
-        "User-Agent": "Diogenes/0.1 (+https://github.com/EchoWebLV/diogenes)",
+        "User-Agent": "groklius/0.1 (+https://github.com/EchoWebLV/diogenes)",
         Accept: "text/html,application/xhtml+xml,text/plain;q=0.9,*/*;q=0.5",
       },
     });
